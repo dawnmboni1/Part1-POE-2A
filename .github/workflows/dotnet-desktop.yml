@@ -45,6 +45,10 @@ on:
     branches: [ "main" ]
 
 jobs:
+  build:
+    runs-on: windows-latest
+    timeout-minutes: 30  # This line prevents timeout errors
+
 
   build:
 
