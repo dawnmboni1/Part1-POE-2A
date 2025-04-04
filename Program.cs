@@ -86,17 +86,6 @@ namespace WavPlayer
 
             Console.WriteLine("Hey " + userName + ", welcome to ChatBot!");
 
-            // Dictionary to hold keyword groups and corresponding responses
-            var responses = new (string[] Keywords, string Response)[]
-            {
-                (new[] { "how", "are", "you" }, "I'm just a program, but I'm here to assist you!"),
-                (new[] { "purpose", "why", "exist" }, "My purpose is to help you learn about cybersecurity awareness."),
-                (new[] { "questions", "can", "ask", "about" }, "You can ask me general questions about cybersecurity and how to stay safe online."),
-                (new[] { "cybersecurity", "define", "what" }, "Cybersecurity is the practice of protecting systems, networks, and programs from digital attacks."),
-                (new[] { "safe", "stay", "online" }, "To stay safe online, use strong passwords, avoid clicking on suspicious links, and keep your software up to date."),
-                (new[] { "phishing", "explain", "what" }, "Phishing is a type of social engineering attack used to steal user data by pretending to be a trustworthy entity.")
-            };
-
             while (true)
             {
                 Console.WriteLine("\nYou can ask me anything about cybersecurity or type 'exit' to quit.");
@@ -112,20 +101,24 @@ namespace WavPlayer
 
                 bool foundResponse = false;
 
-                foreach (var (keywords, response) in responses)
+                foreach (var (keywords, response) in QuestionsAndResponses.Responses)
                 {
-                    // Check if any of the keywords appear in the user's question
+                    int matches = 0;
+
                     foreach (var keyword in keywords)
                     {
                         if (userInput.Contains(keyword))
                         {
-                            Console.WriteLine(response);
-                            foundResponse = true;
-                            break;
+                            matches++;
                         }
                     }
 
-                    if (foundResponse) break; // Exit loop if a response was found
+                    if (matches >= keywords.Length / 2)
+                    {
+                        Console.WriteLine(response);
+                        foundResponse = true;
+                        break;
+                    }
                 }
 
                 if (!foundResponse)
