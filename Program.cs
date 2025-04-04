@@ -1,23 +1,20 @@
 ﻿using System;
 using System.Diagnostics;
+using System.Drawing;
 using System.Media;
-using System.Runtime.Versioning;
+using System.Runtime.Versioning; // os compatibility
 using System.Text;
+using System.IO; // Needed for Path
+using System.Drawing.Imaging; // Needed for Bitmap;
 
 namespace WavPlayer
 {
-    
     partial class Program
-
     {
-        
-        
         static void Main(string[] args)
-
         {
             DisplayAsciiArt();
 
-            // ✅ Then, Play the voice greeting (if you're on Windows)
             if (OperatingSystem.IsWindows())
             {
                 PlayVoiceGreeting();
@@ -28,89 +25,114 @@ namespace WavPlayer
                 Console.WriteLine("Voice greeting is only available on Windows.");
             }
 
-           
             RunResponseSystem();
 
-            // Play the voice greeting
-            PlayVoiceGreeting();
-
-            Console.WriteLine("Welcome to the Cybersecurity Awareness Bot!");
+            Console.WriteLine("Thank you for using the Cybersecurity Awareness Bot!");
         }
+
         [SupportedOSPlatform("windows")]
         static void PlayVoiceGreeting()
-
         {
             try
             {
-                // Load and play the WAV file
                 SoundPlayer player = new SoundPlayer(@"greeting.wav");
-                player.PlaySync();// Play synchronously
-
+                player.PlaySync();
             }
             catch (Exception e)
             {
                 Console.WriteLine("Error playing audio: " + e.Message);
             }
         }
-            static void DisplayAsciiArt()  
-            {
-            string asciiArt = @"
-      SSSSSS  EEEEEEE  CCCCC  U     U  RRRRRR   III  TTTTTTT  Y     Y  
-     S        E        C      U     U  R     R   I     T      Y   Y    
-      SSSSSS  EEEEE    C      U     U  RRRRRR    I     T       Y Y     
-           S  E        C      U     U  R   R     I     T        Y      
-      SSSSSS  EEEEEEE  CCCCC   UUUUU   R    RR  III    T        Y      
-    ";
 
-            Console.ForegroundColor = ConsoleColor.Red;
-            Console.WriteLine(asciiArt);
-            Console.ResetColor();
-        }
-
-            static void RunResponseSystem()
+        static void DisplayAsciiArt()
+        {
+            try
             {
-                while (true)
+                string fullLocation = AppDomain.CurrentDomain.BaseDirectory;
+                string newLocation = Path.GetFullPath(Path.Combine(fullLocation, @"..\..\..\"));
+                string fullPath = Path.Combine(newLocation, "logo.jpg");
+
+                if (!File.Exists(fullPath))
                 {
-                    Console.WriteLine("\nYou can ask me questions like:");
-                    Console.WriteLine("- How are you?");
-                    Console.WriteLine("- What's your purpose?");
-                    Console.WriteLine("- What can I ask you about?");
-                    Console.WriteLine("- Type 'exit' to quit.");
+                    Console.WriteLine("Error: Image file 'logo.jpg' not found at " + fullPath);
+                    return;
+                }
 
-                    Console.Write("\nAsk your question: ");
-                    string userInput = Console.ReadLine().ToLower();
+                Bitmap image = new Bitmap(fullPath);
+                image = new Bitmap(image, new Size(100, 60));
 
-                    if (userInput == "exit")
+                for (int height = 0; height < image.Height; height++)
+                {
+                    for (int width = 0; width < image.Width; width++)
                     {
-                        Console.WriteLine("Goodbye! Stay safe online.");
-                        break;
+                        Color pixelColor = image.GetPixel(width, height);
+                        int gray = (pixelColor.R + pixelColor.G + pixelColor.B) / 3;
+                        char asciiChar = gray > 200 ? '-' : gray > 150 ? '*' : gray > 100 ? 'o' : gray > 50 ? '#' : '@';
+                        Console.Write(asciiChar);
                     }
-
-                    switch (userInput)
-                    {
-                        case "how are you?":
-                            Console.WriteLine("I'm just a program, but I'm here to assist you!");
-                            break;
-                        case "what's your purpose?":
-                            Console.WriteLine("My purpose is to help you learn about cybersecurity awareness.");
-                            break;
-                        case "what can i ask you about?":
-                            Console.WriteLine("You can ask me general questions about cybersecurity and how to stay safe online.");
-                            break;
-                        default:
-                            Console.WriteLine("I'm sorry, I don't have a response for that yet.");
-                            break;
-                    }
+                    Console.WriteLine();
                 }
             }
-        
-        private static string GetDebuggerDisplay()
+            catch (Exception ex)
+            {
+                Console.WriteLine("Error displaying ASCII art: " + ex.Message);
+            }
+        }
+
+        static void RunResponseSystem()
         {
-            return "WavPlayer Program Class";
-        }  
+            Console.Write("Please enter your name: ");
+            string userName = Console.ReadLine();
 
-    }  
-}  
+            Console.WriteLine("Hey " + userName + ", welcome to ChatBot!");
 
+            // Dictionary to hold keyword groups and corresponding responses
+            var responses = new (string[] Keywords, string Response)[]
+            {
+                (new[] { "how", "are", "you" }, "I'm just a program, but I'm here to assist you!"),
+                (new[] { "purpose", "why", "exist" }, "My purpose is to help you learn about cybersecurity awareness."),
+                (new[] { "questions", "can", "ask", "about" }, "You can ask me general questions about cybersecurity and how to stay safe online."),
+                (new[] { "cybersecurity", "define", "what" }, "Cybersecurity is the practice of protecting systems, networks, and programs from digital attacks."),
+                (new[] { "safe", "stay", "online" }, "To stay safe online, use strong passwords, avoid clicking on suspicious links, and keep your software up to date."),
+                (new[] { "phishing", "explain", "what" }, "Phishing is a type of social engineering attack used to steal user data by pretending to be a trustworthy entity.")
+            };
 
+            while (true)
+            {
+                Console.WriteLine("\nYou can ask me anything about cybersecurity or type 'exit' to quit.");
 
+                Console.Write("\nAsk your question: ");
+                string userInput = Console.ReadLine().ToLower();
+
+                if (userInput == "exit")
+                {
+                    Console.WriteLine("Goodbye! Stay safe online.");
+                    break;
+                }
+
+                bool foundResponse = false;
+
+                foreach (var (keywords, response) in responses)
+                {
+                    // Check if any of the keywords appear in the user's question
+                    foreach (var keyword in keywords)
+                    {
+                        if (userInput.Contains(keyword))
+                        {
+                            Console.WriteLine(response);
+                            foundResponse = true;
+                            break;
+                        }
+                    }
+
+                    if (foundResponse) break; // Exit loop if a response was found
+                }
+
+                if (!foundResponse)
+                {
+                    Console.WriteLine("I'm sorry, I don't have a response for that yet.");
+                }
+            }
+        }
+    }
+}
